@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Інтерактивний Пошук По Травмах</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .response-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        #chart {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Запит до бази даних травм</h2>
+        <textarea id="query" placeholder="Наприклад: Які травми були зафіксовані поблизу Бахмута минулого тижня?"></textarea>
+        <button onclick="submitQuery()">Надіслати запит</button>
+
+        <div class="response-container" id="response"></div>
+        <canvas id="chart" width="400" height="200"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        async function verifyToken() {
+            if (!token) {
+                alert('Будь ласка, увійдіть для доступу до цієї сторінки.');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/verify-token', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    alert('Сесія закінчилася або токен недійсний. Будь ласка, увійдіть знову.');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Помилка перевірки токена:', error);
+                alert('Виникла помилка при перевірці токена. Будь ласка, увійдіть знову.');
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        }
+
+        async function submitQuery() {
+            const query = document.getElementById('query').value.trim();
+            if (!query) {
+                alert('Будь ласка, введіть запит.');
+                return;
+            }
+
+            const responseContainer = document.getElementById('response');
+            responseContainer.innerHTML = 'Завантаження...';
+
+            try {
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                if (response.status === 401) {
+                    alert('Сесія закінчилася або відсутній доступ. Будь ласка, увійдіть знову.');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                if (!response.ok) throw new Error('Помилка при обробці запиту.');
+                const data = await response.json();
+
+                responseContainer.innerHTML = `<strong>Відповідь:</strong> ${data.answer}`;
+                // Check if injuries exist and log the count
+                // Check if we have injuries data
+                if (data.injuries && Array.isArray(data.injuries) && data.injuries.length > 0) {
+                    try {
+                        console.log(`Processing ${data.injuries.length} injuries`);
+
+                        // Start building the HTML table
+                        let injuriesHTML = `
+                            <div style="margin-top: 20px; display: block;">
+                                <h4>Список травм (${data.injuries.length}):</h4>
+                                <table border="1" style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: #f2f2f2;">
+                                            <th style="padding: 8px; text-align: left;">Опис</th>
+                                            <th style="padding: 8px; text-align: left;">Дата</th>
+                                            <th style="padding: 8px; text-align: left;">Координати</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                        // Process each injury record
+                        data.injuries.forEach((injury, index) => {
+                            // Handle date formatting
+                            let dateText = 'Не вказано';
+                            if (injury.reported_at) {
+                                try {
+                                    // Parse the date string - handle both ISO format and Timestamp display format
+                                    dateText = new Date(injury.reported_at).toLocaleString('uk-UA');
+                                } catch (e) {
+                                    console.error(`Error formatting date for injury ${index}:`, e);
+                                    dateText = String(injury.reported_at);
+                                }
+                            }
+
+                            // Handle coordinates
+                            let coordsText = 'Не вказано';
+                            if (injury.latitude != null && injury.longitude != null) {
+                                const lat = parseFloat(injury.latitude).toFixed(4);
+                                const lon = parseFloat(injury.longitude).toFixed(4);
+                                coordsText = `<a href="https://maps.google.com/?q=${injury.latitude},${injury.longitude}" target="_blank">${lat}, ${lon}</a>`;
+                            }
+
+                            // Description with fallback
+                            const description = injury.description || 'Немає опису';
+
+                            // Add the row to our HTML
+                            injuriesHTML += `
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="padding: 8px;">${description}</td>
+                                    <td style="padding: 8px;">${dateText}</td>
+                                    <td style="padding: 8px;">${coordsText}</td>
+                                </tr>`;
+                        });
+
+                        // Close the table
+                        injuriesHTML += `
+                                    </tbody>
+                                </table>
+                            </div>`;
+
+                        // Append to the container
+                        console.log('Adding injuries table to DOM');
+                        responseContainer.innerHTML += injuriesHTML;
+
+                    } catch (error) {
+                        console.error('Error displaying injuries:', error);
+                        responseContainer.innerHTML += `<div style="color: red; margin-top: 15px;">Помилка відображення травм: ${error.message}</div>`;
+                    }
+                } else {
+                    console.log('No injuries to display or injuries data is not in expected format');
+                }
+
+            } catch (error) {
+                responseContainer.innerHTML = '⚠️ Виникла помилка. Спробуйте ще раз.';
+                console.error(error);
+            }
+        }
+
+        function renderChart(chartData) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (window.currentChart) window.currentChart.destroy();
+
+            window.currentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Кількість травм',
+                        data: chartData.values,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Кількість травм'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Дата повідомлення'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        window.onload = verifyToken;
+    </script>
+</body>
+</html>

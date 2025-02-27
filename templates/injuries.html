@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Всі повідомленні травми</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Всі повідомленні травми</h2>
+
+        <table id="injuryTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Опис</th>
+                    <th>Важкість</th>
+                    <th>Широта</th>
+                    <th>Довгота</th>
+                    <th>Дата та час</th>
+                </tr>
+            </thead>
+            <tbody id="injuryTableBody">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+
+        <div class="button-container">
+            <button onclick="window.location.href='/add-injury'">Повідомити нову травму</button>
+            <button onclick="window.location.href='/report'">Звіт по травмам</button>
+            <button onclick="logout()">Вийти</button>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = '/login';
+
+        async function verifyToken() {
+            if (!token) {
+                alert('Будь ласка, увійдіть для доступу до цієї сторінки.');
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/verify-token', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    alert('Сесія закінчилася або токен недійсний. Будь ласка, увійдіть знову.');
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Помилка перевірки токена:', error);
+                alert('Виникла помилка при перевірці токена. Будь ласка, увійдіть знову.');
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        }
+
+        async function fetchInjuries() {
+            try {
+                const response = await fetch('/api/injuries', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch injuries');
+
+                const injuries = await response.json();
+                const tableBody = document.getElementById('injuryTableBody');
+
+                if (injuries.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6">No injuries reported.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = injuries.map((injury, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${injury.description}</td>
+                        <td>${injury.severity}</td>
+                        <td>${injury.latitude.toFixed(4)}</td>
+                        <td>${injury.longitude.toFixed(4)}</td>
+                        <td>${new Date(injury.reported_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+                alert('Error fetching injuries. Please try again later.');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+
+        fetchInjuries();
+        window.onload = verifyToken;
+    </script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Injury</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Повідомити про травму</h2>
+        <form id="injuryForm">
+            <textarea id="description" placeholder="Опишіть травму" required></textarea>
+            <input type="number" id="latitude" placeholder="Широта" step="any" required>
+            <input type="number" id="longitude" placeholder="Довгота" step="any" required>
+            <button type="submit">Відправити</button>
+        </form>
+        <p id="response"></p>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Please login first!');
+            window.location.href = '/login';
+        }
+
+        document.getElementById('injuryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const description = document.getElementById('description').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const longitude = parseFloat(document.getElementById('longitude').value);
+
+            const response = await fetch('/api/add-injury', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ description, latitude, longitude })
+            });
+
+            const data = await response.json();
+            document.getElementById('response').innerText = data.message || data.error;
+        });
+    </script>
+</body>
+</html>
