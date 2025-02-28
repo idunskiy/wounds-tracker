@@ -357,7 +357,16 @@ def extract_query_parameters_with_langchain(query):
     6. limit: обмеження кількості результатів (використовуй 100 як значення за замовчуванням)
     7. query_type: тип запиту ("count" для підрахунку, "list" для списку травм, "frequent" для найчастіших)
 
-    Результат у форматі JSON:
+    Формат JSON:
+    {{
+      "location": "...",
+      "radius_km": ...,
+      "time_frame": "...",
+      "injury_type": "...",
+      "sort_by": "...",
+      "limit": ...,
+      "query_type": "..."
+    }}
     """
 
     prompt = PromptTemplate(
@@ -384,6 +393,11 @@ def extract_query_parameters_with_langchain(query):
         params.setdefault('limit', 100)
         params.setdefault('query_type', 'list')
 
+        # 🔥 If injury_type is missing, extract manually using regex
+        if not params['injury_type']:
+            params['injury_type'] = extract_injury_type(query)
+            print(f"⚡ Manually Extracted injury_type: {params['injury_type']}")
+
         return params
     except json.JSONDecodeError as e:
         print(f"Error parsing LLM output: {e}")
@@ -398,6 +412,29 @@ def extract_query_parameters_with_langchain(query):
             'limit': 100,
             'query_type': 'list'
         }
+
+
+def extract_injury_type(query):
+    """Extract injury type manually with improved Ukrainian language support"""
+    # Add word stemming or handle variations
+    variations = {
+        "контузія": ["контузія", "контузії", "контузією", "контузій"],
+        "лицьові поранення": ["лицьові поранення", "лицьового поранення", "лицьовими пораненнями"]
+        # Add other injury types with their variations
+    }
+
+    # Check for any variation in the query
+    for main_type, variants in variations.items():
+        for variant in variants:
+            if re.search(fr"(?<![а-яіїєґА-ЯІЇЄҐ]){variant}(?![а-яіїєґА-ЯІЇЄҐ])", query, re.IGNORECASE):
+                return main_type
+
+    # Fallback to the original INJURY_TYPES list
+    for injury in INJURY_TYPES:
+        if re.search(fr"(?<![а-яіїєґА-ЯІЇЄҐ]){injury}(?![а-яіїєґА-ЯІЇЄҐ])", query, re.IGNORECASE):
+            return injury
+
+    return None  # Default if nothing is found
 
 
 def build_sql_query(params):

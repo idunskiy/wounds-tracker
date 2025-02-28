@@ -41,6 +41,23 @@
 <body>
     <div class="container">
         <h2>Запит до бази даних травм</h2>
+
+        <!-- Links for Reporting and Viewing Injuries -->
+        <div style="margin-bottom: 15px;">
+            <a href="/add-injury" style="margin-right: 10px; padding: 10px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">📝 Повідомити про травму</a>
+            <a href="/injuries" style="padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">📋 Переглянути всі травми</a>
+        </div>
+
+        <!-- Examples of Queries -->
+        <div class="examples" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+            <strong>Приклади запитів:</strong>
+            <ul style="padding-left: 20px; margin-top: 5px;">
+                <li><a href="#" onclick="setExampleQuery(event, 'Які травми були зафіксовані біля Лисечанська протягом 3х минулих тижнів?')">Які травми були зафіксовані біля Лисечанська протягом 3х минулих тижнів?</a></li>
+                <li><a href="#" onclick="setExampleQuery(event, 'Скільки було лицьових поранень за цей тиждень?')">Скільки було лицьових поранень за цей тиждень?</a></li>
+                <li><a href="#" onclick="setExampleQuery(event, 'Які найчастіші травми траплялися у Бахмуті за цей місяць?')">Які найчастіші травми траплялися у Бахмуті за цей місяць?</a></li>
+            </ul>
+        </div>
+
         <textarea id="query" placeholder="Наприклад: Які травми були зафіксовані поблизу Бахмута минулого тижня?"></textarea>
         <button onclick="submitQuery()">Надіслати запит</button>
 
@@ -225,6 +242,11 @@
             });
         }
         window.onload = verifyToken;
+
+         function setExampleQuery(event, queryText) {
+            event.preventDefault(); // Prevents the page from refreshing
+            document.getElementById('query').value = queryText;
+        }
     </script>
 </body>
 </html>
