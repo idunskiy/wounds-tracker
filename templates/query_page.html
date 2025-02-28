@@ -4,52 +4,21 @@
     <meta charset="UTF-8">
     <title>Інтерактивний Пошук По Травмах</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        .container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100px;
-            margin-bottom: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .response-container {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-
-        #chart {
-            margin-top: 20px;
-        }
-    </style>
 </head>
 <body>
+
+        <div class="nav">
+          <a href="/add-injury">Повідомити травму</a>
+          <a href="/injuries">Список травм</a>
+          <a href="/report">Звіт по травмам</a>
+          <a href="#" onclick="logout()">Вийти</a>
+        </div>
+
     <div class="container">
         <h2>Запит до бази даних травм</h2>
 
-        <!-- Links for Reporting and Viewing Injuries -->
-        <div style="margin-bottom: 15px;">
-            <a href="/add-injury" style="margin-right: 10px; padding: 10px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">📝 Повідомити про травму</a>
-            <a href="/injuries" style="padding: 10px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">📋 Переглянути всі травми</a>
-        </div>
-
         <!-- Examples of Queries -->
-        <div class="examples" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+        <div class="examples" style="padding: 10px; border-radius: 5px; margin-bottom: 10px;">
             <strong>Приклади запитів:</strong>
             <ul style="padding-left: 20px; margin-top: 5px;">
                 <li><a href="#" onclick="setExampleQuery(event, 'Які травми були зафіксовані біля Лисечанська протягом 3х минулих тижнів?')">Які травми були зафіксовані біля Лисечанська протягом 3х минулих тижнів?</a></li>

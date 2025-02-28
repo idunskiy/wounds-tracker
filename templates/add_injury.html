@@ -4,8 +4,87 @@
     <meta charset="UTF-8">
     <title>Report Injury</title>
     <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .nav {
+            background-color: #333;
+            overflow: hidden;
+            padding: 10px 0;
+            text-align: center;
+        }
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 14px 20px;
+            display: inline-block;
+        }
+        .nav a:hover {
+            background-color: #575757;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+            margin: 0 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: none;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background: white;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
+    <div class="nav">
+      <a href="/add-injury">Повідомити травму</a>
+      <a href="/injuries">Список травм</a>
+      <a href="/report">Звіт по травмам</a>
+      <a href="#" onclick="logout()">Вийти</a>
+    </div>
     <div class="container">
         <h2>Повідомити про травму</h2>
         <form id="injuryForm">

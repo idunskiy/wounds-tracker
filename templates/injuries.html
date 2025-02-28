@@ -4,35 +4,16 @@
     <meta charset="UTF-8">
     <title>Всі повідомленні травми</title>
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 12px;
-            border: 1px solid #ccc;
-            text-align: center;
-        }
-
-        th {
-            background-color: #f4f4f4;
-        }
-
-        .button-container {
-            margin-top: 20px;
-        }
-
-        button {
-            padding: 10px 15px;
-            margin-right: 10px;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
+
+    <div class="nav">
+      <a href="/add-injury">Повідомити травму</a>
+      <a href="/injuries">Список травм</a>
+      <a href="/report">Звіт по травмам</a>
+      <a href="#" onclick="logout()">Вийти</a>
+    </div>
+
     <div class="container">
         <h2>Всі повідомленні травми</h2>
 
@@ -52,11 +33,11 @@
             </tbody>
         </table>
 
-        <div class="button-container">
-            <button onclick="window.location.href='/add-injury'">Повідомити нову травму</button>
-            <button onclick="window.location.href='/report'">Звіт по травмам</button>
-            <button onclick="logout()">Вийти</button>
-        </div>
+<!--        <div class="button-container">-->
+<!--            <button onclick="window.location.href='/add-injury'">Повідомити нову травму</button>-->
+<!--            <button onclick="window.location.href='/report'">Звіт по травмам</button>-->
+<!--            <button onclick="logout()">Вийти</button>-->
+<!--        </div>-->
     </div>
 
     <script>
@@ -98,6 +79,10 @@
                 if (!response.ok) throw new Error('Failed to fetch injuries');
 
                 const injuries = await response.json();
+
+                // Sort injuries by reported_at (newest first)
+                injuries.sort((a, b) => new Date(b.reported_at) - new Date(a.reported_at));
+
                 const tableBody = document.getElementById('injuryTableBody');
 
                 if (injuries.length === 0) {
