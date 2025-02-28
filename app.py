@@ -193,4 +193,7 @@ with app.app_context():
     initialize_retriever()
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        print("Database tables created successfully.")
     app.run(debug=os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes'], port=5001, use_reloader=False)
