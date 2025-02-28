@@ -19,12 +19,12 @@ input, textarea, button {
     border-radius: 5px;
 }
 button {
-    background-color: #004d00;
+    background-color: #007000;
     color: white;
     cursor: pointer;
 }
 button:hover {
-    background-color: #45a049;
+    background-color: #003d00;
 }
 ul {
     list-style-type: none;
