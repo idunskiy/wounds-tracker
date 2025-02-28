@@ -2,144 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Injury Reporting System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        input, textarea, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        .response {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #e7f3e7;
-            border: 1px solid #4CAF50;
-            border-radius: 5px;
-        }
-    </style>
+    <title>Завантаження...</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                // Redirect to login if no token
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                // Verify token with API
+                const response = await fetch('/api/verify-token', {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    // Redirect to injury list if authenticated
+                    window.location.href = '/injuries';
+                } else {
+                    // If token is invalid, remove it and redirect to login
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error verifying token:', error);
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            }
+        });
+    </script>
 </head>
 <body>
-    <div class="container">
-        <h2>User Registration</h2>
-        <form id="registerForm">
-            <input type="text" id="registerUsername" placeholder="Username" required>
-            <input type="password" id="registerPassword" placeholder="Password" required>
-            <button type="submit">Register</button>
-        </form>
-
-        <h2>User Login</h2>
-        <form id="loginForm">
-            <input type="text" id="loginUsername" placeholder="Username" required>
-            <input type="password" id="loginPassword" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-
-        <h2>Report Injury</h2>
-        <form id="injuryForm">
-            <textarea id="injuryDescription" placeholder="Describe the injury" required></textarea>
-            <input type="text" id="injuryLocation" placeholder="Location (optional)">
-            <button type="submit">Report Injury</button>
-        </form>
-
-        <h2>Your Reported Injuries</h2>
-        <button onclick="getInjuries()">Get Injuries</button>
-
-        <div class="response" id="response"></div>
-    </div>
-
-    <script>
-        let token = "";
-
-        document.getElementById('registerForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const username = document.getElementById('registerUsername').value;
-            const password = document.getElementById('registerPassword').value;
-
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-        });
-
-        document.getElementById('loginForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const username = document.getElementById('loginUsername').value;
-            const password = document.getElementById('loginPassword').value;
-
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await response.json();
-            if (data.token) {
-                token = data.token;
-            }
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-        });
-
-        document.getElementById('injuryForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            if (!token) {
-                alert('Please log in first.');
-                return;
-            }
-            const description = document.getElementById('injuryDescription').value;
-            const location = document.getElementById('injuryLocation').value;
-
-            const response = await fetch('/report_injury', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ description, location })
-            });
-            const data = await response.json();
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-        });
-
-        async function getInjuries() {
-            if (!token) {
-                alert('Please log in first.');
-                return;
-            }
-
-            const response = await fetch('/injuries', {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await response.json();
-            document.getElementById('response').innerText = JSON.stringify(data, null, 2);
-        }
-    </script>
+    <p>Завантаження...</p>
 </body>
 </html>
