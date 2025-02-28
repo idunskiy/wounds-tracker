@@ -1,3 +1,11 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+
+/* Global font settings */
+body, button, input, textarea {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 16px; /* Adjust globally */
+}
+
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
@@ -11,13 +19,39 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
-input, textarea, button {
+
+
+button {
     width: 100%;
     padding: 10px;
     margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+input {
+    width: 100%;
+    margin: 10px 10px 10px 0; /* Adjust the right margin */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    margin: 10px 10px 10px 0; /* Adjust the right margin */
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
 button {
     background-color: #007000;
     color: white;

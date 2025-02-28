@@ -109,7 +109,7 @@ def report_injury():
     db.session.add(injury)
     db.session.commit()
 
-    return jsonify({'message': 'Injury reported successfully.'}), 201
+    return jsonify({'message': 'Травму успішно додано.'}), 201
 
 
 @app.route('/injuries', methods=['GET'])
