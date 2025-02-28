@@ -196,9 +196,17 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         print("Database tables created successfully.")
-    app.run(
-        host='0.0.0.0',  # Bind to all available network interfaces
-        port=int(os.getenv('PORT', 5000)),  # Render provides a PORT env variable
-        debug=os.getenv('DEBUG', 'False').lower() in ['true', '1', 'yes'],
-        use_reloader=False
-    )
+
+    if os.getenv('DEBUG', 'False').lower() not in ['true', '1', 'yes']:  # Production mode
+        app.run(
+            host='0.0.0.0',  # Bind to all network interfaces
+            port=int(os.getenv('PORT', 5000)),  # Use Render's assigned port
+            debug=False,  # Explicitly disable debug mode
+            use_reloader=False
+        )
+    else:  # Development mode
+        app.run(
+            debug=True,
+            port=5001,
+            use_reloader=False
+        )
