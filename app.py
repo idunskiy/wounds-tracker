@@ -286,6 +286,12 @@ def parse_time_frame(time_frame: str):
         start_date = end_date - timedelta(days=1)
     elif "позавчора" in time_frame:
         start_date = end_date - timedelta(days=2)
+    elif "на цьому тижні" in time_frame or "в цьому тижні" in time_frame or "цей тиждень" in time_frame:
+        # Start from Monday of the current week
+        start_date = end_date - timedelta(days=end_date.weekday())  # Move to Monday
+    elif "в цьому місяці" in time_frame or "на цьому місяці" in time_frame or "цей місяць" in time_frame:
+        # Start from the 1st day of the current month
+        start_date = datetime(end_date.year, end_date.month, 1)
     elif "минулого тижня" in time_frame or "на минулому тижні" in time_frame or "останній тиждень" in time_frame:
         # Get start of the previous week (Monday)
         today = end_date.weekday()  # 0 is Monday, 6 is Sunday
@@ -411,6 +417,9 @@ def build_sql_query(params):
         'end_date': end_date
     }
 
+    params['start_date'] = start_date
+    params['end_date'] = end_date
+
     # Add injury type filter if specified
     if params['injury_type']:
 
@@ -463,7 +472,7 @@ def generate_answer(original_query, params, results_df):
     # No results case
     if count == 0:
         if params['location']:
-            answer = f"Не знайдено травм{' типу ' + params['injury_type'] if params['injury_type'] else ''} у радіусі {params['radius_km']} км від {params['location']}."
+            answer = f"Не знайдено травм{' типу ' + params['injury_type'] if params['injury_type'] else ''} у радіусі {params['radius_km']} км від {params['location']} з {params['start_date'].strftime('%Y-%m-%d')} по {params['end_date'].strftime('%Y-%m-%d')}."
             filtered_df = pd.DataFrame()
             return answer, filtered_df
         else:
@@ -482,24 +491,36 @@ def generate_answer(original_query, params, results_df):
         if params['location']:
             answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} у радіусі {params['radius_km']} км від {params['location']}."
         else:
-            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} за вказаний період."
+            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} з {params['start_date'].strftime('%Y-%m-%d')} по {params['end_date'].strftime('%Y-%m-%d')}."
+
 
     elif params['query_type'] == 'frequent':
-        # Count occurrences of each injury type
-        injury_counts = filtered_df['description'].value_counts().head(5)
-        most_common = injury_counts.index[0] if not injury_counts.empty else "невідомо"
-        most_common_count = injury_counts.iloc[0] if not injury_counts.empty else 0
+        # Count occurrences of each injury type and get the top 3
+        injury_counts = filtered_df['description'].value_counts()
 
-        if params['location']:
-            answer = f"Найчастіша травма у районі {params['location']}: {most_common} ({most_common_count} випадків)."
-        else:
-            answer = f"Найчастіша травма за вказаний період: {most_common} ({most_common_count} випадків)."
+        # Exclude injuries that appear only once
+        injury_counts = injury_counts[injury_counts > 1].head(3)
+
+        if injury_counts.empty:
+            answer = "Не знайдено достатньо даних для визначення найчастіших травм."
+            return answer, pd.DataFrame()
+
+        # Get the most common injuries and their counts
+        top_injuries = [(injury, count) for injury, count in zip(injury_counts.index, injury_counts.values)]
+
+        # Format the answer with each injury on a new line
+        injuries_text = "\n".join([f"{injury} ({count} випадків)" for injury, count in top_injuries])
+        answer = f"Найчастіші травми у районі {params['location']} з {params['start_date'].strftime('%Y-%m-%d')} по {params['end_date'].strftime('%Y-%m-%d')}:\n{injuries_text}"
+
+        # Filter DataFrame to only include rows with these top injuries, sorted by description
+        filtered_df = filtered_df[filtered_df['description'].isin(injury_counts.index)].sort_values(by='description')
+        return answer, filtered_df
 
     else:  # 'list' type query
         if params['location']:
-            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} у радіусі {params['radius_km']} км від {params['location']}."
+            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} у радіусі {params['radius_km']} км від {params['location']} з {params['start_date'].strftime('%Y-%m-%d')} по {params['end_date'].strftime('%Y-%m-%d')}."
         else:
-            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} за вказаний період."
+            answer = f"Знайдено {count_text}{' типу ' + params['injury_type'] if params['injury_type'] else ''} з {params['start_date'].strftime('%Y-%m-%d')} по {params['end_date'].strftime('%Y-%m-%d')}."
 
     return answer, filtered_df
 
