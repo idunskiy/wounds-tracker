@@ -394,7 +394,7 @@ def extract_query_parameters_with_langchain(query):
         params.setdefault('query_type', 'list')
 
         # 🔥 If injury_type is missing, extract manually using regex
-        if not params['injury_type']:
+        if not params['injury_type'] and params['query_type'] == 'count':
             params['injury_type'] = extract_injury_type(query)
             print(f"⚡ Manually Extracted injury_type: {params['injury_type']}")
 
