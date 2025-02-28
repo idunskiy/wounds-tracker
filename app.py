@@ -19,6 +19,7 @@ from geopy.geocoders import Nominatim
 from datetime import datetime, timedelta
 from langchain.chains import LLMChain
 import math
+from flask_migrate import Migrate
 
 import pandas as pd
 from langchain.prompts import PromptTemplate
@@ -34,6 +35,8 @@ app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY')
 
 db.init_app(app)
+migrate = Migrate(app, db)
+
 jwt = JWTManager(app)
 CORS(app)  # Enable CORS for all routes
 openai_api_key = os.getenv("OPENAI_API_KEY")
